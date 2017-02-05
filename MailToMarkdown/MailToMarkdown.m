@@ -18,6 +18,8 @@
 
 	NSUInteger currentIndex = 0;
 	NSMutableString *markdownString = [NSMutableString new];
+	NSMutableString *debug = [NSMutableString new];
+	bool priorLineWasHeader = false;
 	do
 	{
 		NSRange p;
@@ -43,18 +45,39 @@
 		{
 			NSString *indentedString = [ss stringByReplacingOccurrencesOfString:@"\n" withString:indentString];
 
-			[markdownString appendString:indentString];
-			[markdownString appendString:indentedString];
-			[markdownString appendString:@"\n"];
+			bool isHeader = indent == 0 && [ss hasSuffix:@":"];
+			[debug appendFormat:@"indent=%d isHeader=%d line=[%@]\n",indent,isHeader,ss];
+
+			if (isHeader)
+			{
+				if ( ![ss isEqualToString:@"Begin forwarded message:"] )
+				{
+					[markdownString appendString:ss];
+					[markdownString appendString:@" "];
+				}
+			}
+			else if (priorLineWasHeader)
+			{
+				[markdownString appendString:ss];
+				[markdownString appendString:@"\n"];
+			}
+			else
+			{
+				[markdownString appendString:indentString];
+				[markdownString appendString:indentedString];
+				[markdownString appendString:@"\n"];
+			}
+
+			priorLineWasHeader = isHeader;
 		}
 
 		currentIndex += p.length;
 	} while (currentIndex < [as length]);
 
-	[markdownString replaceOccurrencesOfString:@"\nBegin forwarded message:\n" withString:@"" options:0 range:NSMakeRange(0, [markdownString length])];
-
 	NSString *outputMarkdownString = [markdownString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 	outputMarkdownString = [[@"[email]\n" stringByAppendingString:outputMarkdownString] stringByAppendingString:@"\n[/email]\n"];
+
+//	outputMarkdownString = [outputMarkdownString stringByAppendingString:debug];
 
 	NSPasteboard *outputPBoard = [NSPasteboard generalPasteboard];
 	[outputPBoard clearContents];
