@@ -16,10 +16,15 @@
 	NSData *d = [pboard dataForType:NSPasteboardTypeRTF];
 	NSAttributedString *as = [[NSAttributedString alloc] initWithRTF:d documentAttributes:nil];
 
+	NSArray<NSString *> *hiddenHeaders = @[
+		@"Reply-To:",
+		@"X-Spam-Status:",
+	];
+
 	NSUInteger currentIndex = 0;
 	NSMutableString *markdownString = [NSMutableString new];
 	NSMutableString *debug = [NSMutableString new];
-	bool priorLineWasHeader = false;
+	NSString *currentHeader = nil;
 	do
 	{
 		NSRange p;
@@ -50,16 +55,22 @@
 
 			if (isHeader)
 			{
-				if ( ![ss isEqualToString:@"Begin forwarded message:"] )
+				if ( ![ss isEqualToString:@"Begin forwarded message:"]
+				  && ![hiddenHeaders containsObject:ss] )
 				{
 					[markdownString appendString:ss];
 					[markdownString appendString:@" "];
 				}
+				currentHeader = ss;
 			}
-			else if (priorLineWasHeader)
+			else if (currentHeader)
 			{
-				[markdownString appendString:ss];
-				[markdownString appendString:@"\n"];
+				if (![hiddenHeaders containsObject:currentHeader])
+				{
+					[markdownString appendString:ss];
+					[markdownString appendString:@"\n"];
+				}
+				currentHeader = nil;
 			}
 			else
 			{
@@ -67,8 +78,6 @@
 				[markdownString appendString:indentedString];
 				[markdownString appendString:@"\n"];
 			}
-
-			priorLineWasHeader = isHeader;
 		}
 
 		currentIndex += p.length;
