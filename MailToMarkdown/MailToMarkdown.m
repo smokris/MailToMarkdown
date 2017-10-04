@@ -13,6 +13,8 @@
 
 - (void)convertSelectionToMarkdown:(NSPasteboard *)pboard userData:(NSString *)userData error:(NSString **)error
 {
+	int osVersion = NSProcessInfo.processInfo.operatingSystemVersion.minorVersion;
+
 	NSData *d = [pboard dataForType:NSPasteboardTypeRTF];
 	NSAttributedString *as = [[NSAttributedString alloc] initWithRTF:d documentAttributes:nil];
 
@@ -34,12 +36,28 @@
 		char indent = 0;
 		if (fabs([csc brightnessComponent] - 0) < 0.1)	// Black
 			indent = 0;
-		else if (fabs([csc hueComponent] - .61) < 0.1)	// Blue
-			indent = 0;
-		else if (fabs([csc hueComponent] - .34) < 0.1)	// Green
-			indent = 1;
-		else if (fabs([csc hueComponent] - .99) < 0.1)	// Red
-			indent = 2;
+
+		else
+		{
+			if (osVersion < 13)
+			{
+				if (fabs([csc hueComponent] - .61) < 0.1)       // Blue
+					indent = 0;
+				else if (fabs([csc hueComponent] - .34) < 0.1)  // Green
+					indent = 1;
+				else if (fabs([csc hueComponent] - .99) < 0.1)  // Red
+					indent = 2;
+			}
+			else
+			{
+				if (fabs([csc hueComponent] - .67) < 0.1)       // Purple
+					indent = 0;
+				else if (fabs([csc hueComponent] - .53) < 0.1)  // Teal
+					indent = 1;
+				else if (fabs([csc hueComponent] - .33) < 0.1)  // Green
+					indent = 2;
+			}
+		}
 
 		NSMutableString *indentString = [[NSMutableString alloc] initWithString:@"\n"];
 		for (int i = 0; i < indent; ++i)
