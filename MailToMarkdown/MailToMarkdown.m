@@ -21,6 +21,7 @@
 	NSArray<NSString *> *hiddenHeaders = @[
 		@"Reply-To:",
 		@"X-Spam-Status:",
+		@"X-Spam-Score:",
 	];
 
 	NSUInteger currentIndex = 0;
