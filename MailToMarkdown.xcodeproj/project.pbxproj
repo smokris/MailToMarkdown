@@ -75,6 +75,7 @@
 				2B2A9DA01C780D0100B3D787 /* Sources */,
 				2B2A9DA11C780D0100B3D787 /* Frameworks */,
 				2B2A9DA21C780D0100B3D787 /* Resources */,
+				2B12B2622050951E00D207B3 /* ShellScript */,
 			);
 			buildRules = (
 			);
@@ -126,6 +127,23 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		2B12B2622050951E00D207B3 /* ShellScript */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "pkill MailToMarkdown || true";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		2B2A9DA01C780D0100B3D787 /* Sources */ = {
