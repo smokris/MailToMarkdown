@@ -28,6 +28,7 @@
 	NSMutableString *markdownString = [NSMutableString new];
 	NSMutableString *debug = [NSMutableString new];
 	NSString *currentHeader = nil;
+	BOOL done = NO;
 	do
 	{
 		NSRange p;
@@ -70,7 +71,7 @@
 			NSString *indentedString = [ss stringByReplacingOccurrencesOfString:@"\n" withString:indentString];
 
 			bool isHeader = indent == 0 && [ss hasSuffix:@":"];
-			[debug appendFormat:@"indent=%d isHeader=%d line=[%@]\n",indent,isHeader,ss];
+			[debug appendFormat:@"indent=%d isHeader=%d block=[%@]\n",indent,isHeader,ss];
 
 			if (isHeader)
 			{
@@ -93,14 +94,35 @@
 			}
 			else
 			{
+				// Remove the email signature, if any.
+				NSArray *lines = [indentedString componentsSeparatedByString:@"\n"];
+				NSMutableString *s = [NSMutableString new];
+				NSString *priorLine;
+				for (NSString *line in lines)
+				{
+					[debug appendFormat:@"line=[%@]\n",line];
+					NSString *trimmedLine = [line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+					if ([priorLine isEqualToString:@""]
+					 && ([trimmedLine isEqualToString:@"-"]
+					  || [trimmedLine isEqualToString:@"—"]))
+					{
+						done = YES;
+						break;
+					}
+
+					[s appendString:line];
+					[s appendString:@"\n"];
+					priorLine = trimmedLine;
+				}
+				
 				[markdownString appendString:indentString];
-				[markdownString appendString:indentedString];
+				[markdownString appendString:s];
 				[markdownString appendString:@"\n"];
 			}
 		}
 
 		currentIndex += p.length;
-	} while (currentIndex < [as length]);
+	} while (currentIndex < [as length] && !done);
 
 	NSString *outputMarkdownString = [markdownString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 	outputMarkdownString = [[@"[email]\n" stringByAppendingString:outputMarkdownString] stringByAppendingString:@"\n[/email]\n"];
