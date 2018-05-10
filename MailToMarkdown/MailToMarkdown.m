@@ -97,14 +97,13 @@
 				// Remove the email signature, if any.
 				NSArray *lines = [indentedString componentsSeparatedByString:@"\n"];
 				NSMutableString *s = [NSMutableString new];
-				NSString *priorLine;
+				NSString *priorLine = nil;
 				for (NSString *line in lines)
 				{
 					[debug appendFormat:@"line=[%@]\n",line];
 					NSString *trimmedLine = [line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-					if ([priorLine isEqualToString:@""]
-					 && ([trimmedLine isEqualToString:@"-"]
-					  || [trimmedLine isEqualToString:@"—"]))
+					if (([priorLine isEqualToString:@""] && ([trimmedLine isEqualToString:@"-"] || [trimmedLine isEqualToString:@"—"]))
+						|| ([lines count] == 1 && [trimmedLine isEqualToString:@"_"]))
 					{
 						done = YES;
 						break;
