@@ -103,6 +103,7 @@
 					[debug appendFormat:@"line=[%@]\n",line];
 					NSString *trimmedLine = [line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 					if (([priorLine isEqualToString:@""] && ([trimmedLine isEqualToString:@"-"] || [trimmedLine isEqualToString:@"—"]))
+						|| [trimmedLine isEqualToString:@"-----Original Message-----"]
 						|| ([lines count] == 1 && [trimmedLine isEqualToString:@"_"]))
 					{
 						done = YES;
