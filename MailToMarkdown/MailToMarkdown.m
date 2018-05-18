@@ -30,12 +30,15 @@
 	NSMutableString *markdownString = [NSMutableString new];
 	NSMutableString *debug = [NSMutableString new];
 	NSString *currentHeader = nil;
+	BOOL wasLink = NO;
 	BOOL done = NO;
 	do
 	{
 		NSRange p;
 		NSColor *c = [as attribute:@"NSColor" atIndex:currentIndex effectiveRange:&p];
 		NSColor *csc = [c colorUsingColorSpaceName:NSCalibratedRGBColorSpace];
+
+		NSString *ss = [[[as string] substringWithRange:p] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 
 		char indent = 0;
 		if (fabs([csc brightnessComponent] - 0) < 0.1)	// Black
@@ -54,12 +57,22 @@
 			}
 			else
 			{
-				if (fabs([csc hueComponent] - .67) < 0.1)       // Purple
+				if (fabs([csc hueComponent] - .67) < 0.05)       // Purple
 					indent = 0;
-				else if (fabs([csc hueComponent] - .53) < 0.1)  // Teal
+				else if (fabs([csc hueComponent] - .53) < 0.05)  // Teal
 					indent = 1;
-				else if (fabs([csc hueComponent] - .33) < 0.1)  // Green
+				else if (fabs([csc hueComponent] - .33) < 0.05)  // Green
 					indent = 2;
+			}
+
+			if (fabs([csc hueComponent] - .61) < 0.05)  // Blue link
+			{
+				[markdownString deleteCharactersInRange:NSMakeRange(markdownString.length-1, 1)];
+				[markdownString appendString:@" "];
+				[markdownString appendString:ss];
+				currentIndex += p.length;
+				wasLink = YES;
+				continue;
 			}
 		}
 
@@ -67,13 +80,12 @@
 		for (int i = 0; i < indent; ++i)
 			[indentString appendString:@"> "];
 
-		NSString *ss = [[[as string] substringWithRange:p] stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 		if ([ss length])
 		{
 			NSString *indentedString = [ss stringByReplacingOccurrencesOfString:@"\n" withString:indentString];
 
 			bool isHeader = indent == 0 && [ss hasSuffix:@":"];
-			[debug appendFormat:@"indent=%d isHeader=%d block=[%@]\n",indent,isHeader,ss];
+			[debug appendFormat:@"hue=%0.2f indent=%d isHeader=%d block=[%@]\n",[csc hueComponent],indent,isHeader,ss];
 
 			if (isHeader)
 			{
@@ -100,6 +112,7 @@
 				NSArray *lines = [indentedString componentsSeparatedByString:@"\n"];
 				NSMutableString *s = [NSMutableString new];
 				NSString *priorLine = nil;
+				int i = 1;
 				for (NSString *line in lines)
 				{
 					[debug appendFormat:@"line=[%@]\n",line];
@@ -114,17 +127,20 @@
 					}
 
 					[s appendString:line];
-					[s appendString:@"\n"];
+					if (i < [lines count])
+						[s appendString:@"\n"];
 					priorLine = trimmedLine;
+					++i;
 				}
 				
-				[markdownString appendString:indentString];
+				[markdownString appendString:(wasLink ? @" " : indentString)];
 				[markdownString appendString:s];
 				[markdownString appendString:@"\n"];
 			}
 		}
 
 		currentIndex += p.length;
+		wasLink = NO;
 	} while (currentIndex < [as length] && !done);
 
 	NSString *outputMarkdownString = [markdownString stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
