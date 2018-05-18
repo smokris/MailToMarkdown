@@ -24,6 +24,8 @@
 		@"X-Spam-Score:",
 	];
 
+	NSRegularExpression *replyRegex = [NSRegularExpression regularExpressionWithPattern:@"^On \\w{3}, \\w{3} [ \\d]{1,2}, \\d{4} at [ \\d]{1,2}:\\d{2} [AP]M, " options:0 error:nil];
+
 	NSUInteger currentIndex = 0;
 	NSMutableString *markdownString = [NSMutableString new];
 	NSMutableString *debug = [NSMutableString new];
@@ -94,7 +96,7 @@
 			}
 			else
 			{
-				// Remove the email signature, if any.
+				// Remove the email signature or the original message when top-posting, if any.
 				NSArray *lines = [indentedString componentsSeparatedByString:@"\n"];
 				NSMutableString *s = [NSMutableString new];
 				NSString *priorLine = nil;
@@ -104,6 +106,7 @@
 					NSString *trimmedLine = [line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 					if (([priorLine isEqualToString:@""] && ([trimmedLine isEqualToString:@"-"] || [trimmedLine isEqualToString:@"—"]))
 						|| [trimmedLine isEqualToString:@"-----Original Message-----"]
+						|| [replyRegex numberOfMatchesInString:trimmedLine options:0 range:NSMakeRange(0, trimmedLine.length)]
 						|| ([lines count] == 1 && [trimmedLine isEqualToString:@"_"]))
 					{
 						done = YES;
