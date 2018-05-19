@@ -30,6 +30,7 @@
 	NSMutableString *markdownString = [NSMutableString new];
 	NSMutableString *debug = [NSMutableString new];
 	NSString *currentHeader = nil;
+	BOOL doneWithHeaders = NO;
 	BOOL wasLink = NO;
 	BOOL done = NO;
 	do
@@ -84,7 +85,7 @@
 		{
 			NSString *indentedString = [ss stringByReplacingOccurrencesOfString:@"\n" withString:indentString];
 
-			bool isHeader = indent == 0 && [ss hasSuffix:@":"];
+			bool isHeader = !doneWithHeaders && indent == 0 && [ss hasSuffix:@":"];
 			[debug appendFormat:@"hue=%0.2f indent=%d isHeader=%d block=[%@]\n",[csc hueComponent],indent,isHeader,ss];
 
 			if (isHeader)
@@ -108,6 +109,8 @@
 			}
 			else
 			{
+				doneWithHeaders = YES;
+
 				// Remove the email signature or the original message when top-posting, if any.
 				NSArray *lines = [indentedString componentsSeparatedByString:@"\n"];
 				NSMutableString *s = [NSMutableString new];
@@ -119,6 +122,7 @@
 					NSString *trimmedLine = [line stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
 					if (([priorLine isEqualToString:@""] && ([trimmedLine isEqualToString:@"-"] || [trimmedLine isEqualToString:@"—"]))
 						|| [trimmedLine isEqualToString:@"-----Original Message-----"]
+						|| [trimmedLine isEqualToString:@"---------- Forwarded message ----------"]
 						|| [replyRegex numberOfMatchesInString:trimmedLine options:0 range:NSMakeRange(0, trimmedLine.length)]
 						|| ([lines count] == 1 && [trimmedLine isEqualToString:@"_"]))
 					{
