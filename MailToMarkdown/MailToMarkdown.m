@@ -24,7 +24,7 @@
 		@"X-Spam-Score:",
 	];
 
-	NSRegularExpression *replyRegex = [NSRegularExpression regularExpressionWithPattern:@"^On \\w{3}, \\w{3} [ \\d]{1,2}, \\d{4} at [ \\d]{1,2}:\\d{2} [AP]M, " options:0 error:nil];
+	NSRegularExpression *replyRegex = [NSRegularExpression regularExpressionWithPattern:@"^On (\\w{3}, )?\\w{3} [ \\d]{1,2}, \\d{4},? at [ \\d]{1,2}:\\d{2} [AP]M, " options:0 error:nil];
 
 	NSUInteger currentIndex = 0;
 	NSMutableString *markdownString = [NSMutableString new];
@@ -84,8 +84,9 @@
 		if ([ss length])
 		{
 			NSString *indentedString = [ss stringByReplacingOccurrencesOfString:@"\n" withString:indentString];
+			NSArray *lines = [indentedString componentsSeparatedByString:@"\n"];
 
-			bool isHeader = !doneWithHeaders && indent == 0 && [ss hasSuffix:@":"];
+			bool isHeader = !doneWithHeaders && indent == 0 && [ss hasSuffix:@":"] && lines.count == 1;
 			[debug appendFormat:@"hue=%0.2f indent=%d isHeader=%d block=[%@]\n",[csc hueComponent],indent,isHeader,ss];
 
 			if (isHeader)
@@ -112,7 +113,6 @@
 				doneWithHeaders = YES;
 
 				// Remove the email signature or the original message when top-posting, if any.
-				NSArray *lines = [indentedString componentsSeparatedByString:@"\n"];
 				NSMutableString *s = [NSMutableString new];
 				NSString *priorLine = nil;
 				int i = 1;
@@ -123,6 +123,8 @@
 					if (([priorLine isEqualToString:@""] && ([trimmedLine isEqualToString:@"-"] || [trimmedLine isEqualToString:@"—"]))
 						|| [trimmedLine isEqualToString:@"-----Original Message-----"]
 						|| [trimmedLine isEqualToString:@"---------- Forwarded message ----------"]
+						|| [trimmedLine isEqualToString:@"Sent from my iPhone"]
+						|| [trimmedLine isEqualToString:@"Sent from my iPad"]
 						|| [replyRegex numberOfMatchesInString:trimmedLine options:0 range:NSMakeRange(0, trimmedLine.length)]
 						|| ([lines count] == 1 && [trimmedLine isEqualToString:@"_"]))
 					{
