@@ -22,6 +22,7 @@
 		@"Reply-To:",
 		@"X-Spam-Status:",
 		@"X-Spam-Score:",
+		@"X-Spam-Virus:",
 	];
 
 	NSRegularExpression *replyRegex = [NSRegularExpression regularExpressionWithPattern:@"^On (\\w{3}, )?\\w{3} [ \\d]{1,2}, \\d{4},? at [ \\d]{1,2}:\\d{2} [AP]M, " options:0 error:nil];
